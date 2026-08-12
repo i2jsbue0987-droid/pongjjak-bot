@@ -2,14 +2,670 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>뽕짝이</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>뽕짝이 - VALORANT Discord Bot</title>
+
+    <meta name="description"
+          content="뽕짝이는 Discord에서 VALORANT 플레이어가 자신의 계정 정보와 최근 경기 통계를 확인할 수 있도록 도와주는 Discord 봇입니다.">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, "Noto Sans KR", sans-serif;
+            background: #0b0f17;
+            color: #f5f5f5;
+            line-height: 1.6;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .container {
+            width: min(1100px, 90%);
+            margin: auto;
+        }
+
+        /* NAV */
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: rgba(11, 15, 23, 0.92);
+            border-bottom: 1px solid #202838;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-inner {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .logo span {
+            color: #ff4655;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+            color: #aeb7c7;
+            font-size: 14px;
+        }
+
+        .nav-links a:hover {
+            color: white;
+        }
+
+        /* HERO */
+
+        .hero {
+            padding: 110px 0 100px;
+            text-align: center;
+            background:
+                radial-gradient(circle at top, #252d40 0%, #0b0f17 55%);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 7px 14px;
+            border-radius: 999px;
+            background: #171e2b;
+            border: 1px solid #303b50;
+            color: #b9c5d8;
+            font-size: 13px;
+            margin-bottom: 25px;
+        }
+
+        .hero h1 {
+            font-size: clamp(45px, 8vw, 85px);
+            font-weight: 900;
+            letter-spacing: -4px;
+            margin-bottom: 15px;
+        }
+
+        .hero h1 span {
+            color: #ff4655;
+        }
+
+        .hero p {
+            max-width: 680px;
+            margin: auto;
+            color: #aeb7c7;
+            font-size: 18px;
+        }
+
+        .buttons {
+            margin-top: 35px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .button {
+            padding: 13px 22px;
+            border-radius: 8px;
+            font-weight: 700;
+            border: 1px solid #303b50;
+            background: #171e2b;
+        }
+
+        .button.primary {
+            background: #ff4655;
+            border-color: #ff4655;
+            color: white;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+        }
+
+        /* SECTION */
+
+        section {
+            padding: 85px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 45px;
+        }
+
+        .section-title h2 {
+            font-size: 35px;
+            margin-bottom: 10px;
+        }
+
+        .section-title p {
+            color: #8f9bad;
+        }
+
+        /* FEATURES */
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .card {
+            background: #111722;
+            border: 1px solid #202838;
+            border-radius: 14px;
+            padding: 28px;
+        }
+
+        .card-icon {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: #9ba6b8;
+            font-size: 14px;
+        }
+
+        /* DEMO */
+
+        .demo {
+            background: #0e131d;
+        }
+
+        .demo-box {
+            max-width: 760px;
+            margin: auto;
+            background: #111722;
+            border: 1px solid #263044;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .demo-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #263044;
+            color: #9ba6b8;
+            font-size: 13px;
+        }
+
+        .discord-message {
+            padding: 25px;
+        }
+
+        .user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #ff4655;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+        }
+
+        .username {
+            font-weight: 700;
+        }
+
+        .bot-tag {
+            background: #5865f2;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+
+        .result {
+            background: #0b0f17;
+            border: 1px solid #283247;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .stat {
+            background: #151c28;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat small {
+            display: block;
+            color: #8792a5;
+            margin-bottom: 4px;
+        }
+
+        .stat strong {
+            font-size: 20px;
+        }
+
+        /* FLOW */
+
+        .flow {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .flow-step {
+            background: #111722;
+            border: 1px solid #283247;
+            border-radius: 12px;
+            padding: 20px 25px;
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .arrow {
+            color: #ff4655;
+            font-size: 25px;
+        }
+
+        /* API */
+
+        .api-list {
+            max-width: 750px;
+            margin: auto;
+        }
+
+        .api-item {
+            padding: 18px 20px;
+            border-bottom: 1px solid #202838;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .api-item span {
+            color: #8f9bad;
+            text-align: right;
+        }
+
+        /* FOOTER */
+
+        footer {
+            border-top: 1px solid #202838;
+            padding: 35px 0;
+            text-align: center;
+            color: #687386;
+            font-size: 13px;
+        }
+
+        @media (max-width: 750px) {
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero {
+                padding: 80px 0;
+            }
+        }
+    </style>
 </head>
+
 <body>
-    <h1>뽕짝이</h1>
-    <p>VALORANT statistics Discord bot.</p>
-    <p>
-        뽕짝이는 Discord에서 VALORANT 계정 정보와
-        최근 경기 통계를 확인할 수 있도록 제작된 개인 프로젝트입니다.
-    </p>
+
+<nav>
+    <div class="container nav-inner">
+        <div class="logo">
+            <span>●</span> 뽕짝이
+        </div>
+
+        <div class="nav-links">
+            <a href="#features">기능</a>
+            <a href="#demo">사용 예시</a>
+            <a href="#flow">사용 흐름</a>
+            <a href="#api">API 사용</a>
+        </div>
+    </div>
+</nav>
+
+
+<!-- HERO -->
+
+<header class="hero">
+    <div class="container">
+
+        <div class="badge">
+            VALORANT × Discord
+        </div>
+
+        <h1>
+            <span>뽕짝이</span>
+        </h1>
+
+        <p>
+            Discord에서 VALORANT 플레이어의
+            계정 정보와 최근 경기 통계를 편리하게 확인할 수 있도록
+            제작된 Discord 봇입니다.
+        </p>
+
+        <div class="buttons">
+            <a class="button primary" href="#features">
+                기능 살펴보기
+            </a>
+
+            <a class="button" href="#flow">
+                서비스 흐름
+            </a>
+        </div>
+
+    </div>
+</header>
+
+
+<!-- FEATURES -->
+
+<section id="features">
+    <div class="container">
+
+        <div class="section-title">
+            <h2>주요 기능</h2>
+            <p>뽕짝이가 제공할 VALORANT 통계 기능입니다.</p>
+        </div>
+
+        <div class="features">
+
+            <div class="card">
+                <div class="card-icon">👤</div>
+                <h3>Riot 계정 연결</h3>
+                <p>
+                    사용자가 Riot 계정을 인증하고
+                    자신의 VALORANT 데이터를 조회할 수 있도록
+                    OAuth 기반 계정 연결을 제공합니다.
+                </p>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">🏆</div>
+                <h3>티어 조회</h3>
+                <p>
+                    인증한 사용자의 VALORANT 경쟁전
+                    티어와 관련된 정보를 Discord에서
+                    확인할 수 있도록 제공합니다.
+                </p>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">📊</div>
+                <h3>최근 전적</h3>
+                <p>
+                    사용자가 자신의 최근 경기 결과와
+                    경기 통계를 Discord 명령어를 통해
+                    확인할 수 있도록 제공합니다.
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- DEMO -->
+
+<section id="demo" class="demo">
+    <div class="container">
+
+        <div class="section-title">
+            <h2>Discord 사용 예시</h2>
+            <p>사용자는 Discord에서 명령어를 통해 자신의 통계를 확인합니다.</p>
+        </div>
+
+        <div class="demo-box">
+
+            <div class="demo-header">
+                # valorant-stats
+            </div>
+
+            <div class="discord-message">
+
+                <div class="user">
+                    <div class="avatar">뽕</div>
+
+                    <div>
+                        <div class="username">
+                            뽕짝이
+                            <span class="bot-tag">BOT</span>
+                        </div>
+
+                        <div style="color:#7f8a9d; font-size:12px;">
+                            /전적
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result">
+
+                    <div class="result-title">
+                        🎮 VALORANT 전적
+                    </div>
+
+                    <p style="color:#9ba6b8; margin-bottom:15px;">
+                        그녀를위한골드계정#wpqkf
+                    </p>
+
+                    <div class="stats">
+
+                        <div class="stat">
+                            <small>티어</small>
+                            <strong>예시</strong>
+                        </div>
+
+                        <div class="stat">
+                            <small>최근 승리</small>
+                            <strong>예시</strong>
+                        </div>
+
+                        <div class="stat">
+                            <small>K/D</small>
+                            <strong>예시</strong>
+                        </div>
+
+                    </div>
+
+                    <p style="margin-top:15px; color:#687386; font-size:12px;">
+                        ※ 위 화면은 서비스의 예상 사용자 경험을 보여주는 프로토타입입니다.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- FLOW -->
+
+<section id="flow">
+    <div class="container">
+
+        <div class="section-title">
+            <h2>서비스 사용 흐름</h2>
+            <p>사용자의 데이터는 인증을 거친 후 조회됩니다.</p>
+        </div>
+
+        <div class="flow">
+
+            <div class="flow-step">
+                <div>👤</div>
+                <strong>사용자</strong>
+                <p style="color:#8792a5; font-size:13px;">
+                    Discord에서 명령어 사용
+                </p>
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="flow-step">
+                <div>🔐</div>
+                <strong>Riot RSO</strong>
+                <p style="color:#8792a5; font-size:13px;">
+                    Riot 계정 인증 및 동의
+                </p>
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="flow-step">
+                <div>🎮</div>
+                <strong>VALORANT API</strong>
+                <p style="color:#8792a5; font-size:13px;">
+                    인증된 사용자 데이터 조회
+                </p>
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="flow-step">
+                <div>📊</div>
+                <strong>뽕짝이</strong>
+                <p style="color:#8792a5; font-size:13px;">
+                    Discord에서 결과 표시
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- API -->
+
+<section id="api">
+    <div class="container">
+
+        <div class="section-title">
+            <h2>API 사용 계획</h2>
+            <p>뽕짝이는 다음 Riot Games API를 사용할 예정입니다.</p>
+        </div>
+
+        <div class="api-list">
+
+            <div class="api-item">
+                <strong>Riot Account API</strong>
+                <span>Riot 계정 식별 및 계정 정보</span>
+            </div>
+
+            <div class="api-item">
+                <strong>VALORANT API</strong>
+                <span>인증된 사용자의 경기 및 통계 데이터</span>
+            </div>
+
+            <div class="api-item">
+                <strong>RSO OAuth</strong>
+                <span>사용자 인증 및 데이터 접근 동의</span>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- PRIVACY / POLICY -->
+
+<section>
+    <div class="container">
+
+        <div class="section-title">
+            <h2>서비스 원칙</h2>
+            <p>뽕짝이는 Riot Games API 정책을 준수하는 것을 목표로 합니다.</p>
+        </div>
+
+        <div class="features">
+
+            <div class="card">
+                <h3>🔐 사용자 인증</h3>
+                <p>
+                    사용자 데이터를 조회하기 전에
+                    Riot 계정 인증 및 필요한 동의 절차를
+                    거치는 것을 목표로 합니다.
+                </p>
+            </div>
+
+            <div class="card">
+                <h3>📋 API 정책 준수</h3>
+                <p>
+                    Riot Games API의 사용 정책과
+                    서비스 요구사항을 준수하여
+                    서비스를 개발합니다.
+                </p>
+            </div>
+
+            <div class="card">
+                <h3>🚫 아이템 상점 기능 제외</h3>
+                <p>
+                    VALORANT 아이템 상점 조회 기능은
+                    제공하지 않습니다.
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+
+<footer>
+    <div class="container">
+        <p>© 2026 PpongJjak</p>
+        <p style="margin-top:8px;">
+            PpongJjak is an independent community project and is not affiliated with Riot Games.
+        </p>
+    </div>
+</footer>
+
 </body>
 </html>
